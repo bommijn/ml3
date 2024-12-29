@@ -1,6 +1,7 @@
 import uvicorn
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator, Field
+from typing import Literal
 import numpy as np
 import pandas as pd
 import joblib
@@ -19,29 +20,37 @@ model = None
 scaler = None
 
 class TitanicPassenger(BaseModel):
-    pclass: int
-    age: float
-    fare: float
-    sex: str
-    embarked: str
+    pclass: Literal[1, 2, 3] = Field(
+        description="Passenger Class (1st, 2nd, or 3rd class)"
+    )
+    age: float = Field(
+        ge=1, 
+        le=100.0,
+        description="Age in years (0-100)"
+    )
+    fare: float = Field(
+        gt=0.1,
+        le=1000.0,
+        description="Ticket fare in pounds (must be > 0)"
+    )
+    sex: Literal["male", "female"] = Field(
+        description="Passenger's sex (male/female)"
+    )
+    embarked: Literal["C", "Q", "S"] = Field(
+        description="Port of Embarkation (C, Q, S)"
+    )
 
-    class Config:
-        schema_extra = {
+    model_config = {
+        "json_schema_extra": {
             "example": {
                 "pclass": 1,
                 "age": 29.0,
                 "fare": 211.33,
                 "sex": "female",
                 "embarked": "S"
-            },
-            "description": {
-                "pclass": "Passenger Class (1, 2, 3)",
-                "age": "Age in years (29.0)",
-                "fare": "fare (211.33)",
-                "sex": "Gender ('male' or 'female')",
-                "embarked": "Port of Embarkation ('C','Q','S')"
             }
         }
+    }
 
 def load_models():
     """Load the pre-trained model and scaler"""
