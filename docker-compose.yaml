@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    container_name: titanic-api
+    ports:
+      - "4222:4222"
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+    environment:
+      - PYTHONPATH=/app
