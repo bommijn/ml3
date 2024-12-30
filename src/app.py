@@ -62,26 +62,32 @@ def load_models():
         raise RuntimeError(f"Error loading model: {str(e)}")
 
 def preprocess_input(passenger: TitanicPassenger) -> np.ndarray:
-    """Preprocess the input data to match the model's requirements"""
-    # create a dataFrame with the input data
-    df = pd.DataFrame([passenger.model_dump()])
-    
-    # One-hot encode categorical variables
-    df = pd.get_dummies(df, columns=['sex', 'embarked'])
-    
-    # ensure all necessary columns exist
-    required_columns = Config.FEATURES
-    for col in required_columns:
-        if col not in df.columns:
-            df[col] = 0
-            
-    # reorder columns to match training data
-    df = df[required_columns]
-    
-    # scale the features
-    scaled_features = scaler.transform(df)
-    
-    return scaled_features
+    try:
+        # Create a DataFrame with the input data
+        df = pd.DataFrame([passenger.model_dump()])
+
+        sex_dummies = pd.get_dummies(df['sex'], prefix='Sex')
+        embarked_dummies = pd.get_dummies(df['embarked'], prefix='Embarked')
+
+        df = df.drop(['sex', 'embarked'], axis=1)
+        df = pd.concat([df, sex_dummies, embarked_dummies], axis=1)
+
+        # Add missing columns
+        for col in Config.FEATURES:
+            if col not in df.columns:
+                df[col] = 0
+       
+        #reorder columns to match training data
+        df = df[Config.FEATURES]
+        
+        # Scale only numeric features
+        df[Config.NUMERIC_FEATURES] = scaler.transform(df[Config.NUMERIC_FEATURES])
+        
+        return df
+        
+    except Exception as e:
+        print(f"Error in preprocessing: {str(e)}")
+        raise
 
 @app.on_event("startup")
 async def startup_event():

@@ -4,5 +4,5 @@ joblib
 pandas
 fastapi
 uvicorn
-scikit-learn
+scikit-learn==1.4.2
 xgboost

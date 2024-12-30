@@ -17,4 +17,4 @@ class Config:
         'Embarked_Q',
         'Embarked_S'
     ]
-
+    NUMERIC_FEATURES = ['Pclass', 'Age', 'Fare']
